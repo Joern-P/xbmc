@@ -54,7 +54,7 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
       if (CAudioDecoder::HasTracks(addonInfo))
       {
         auto exts = StringUtils::Split(CAudioDecoder::GetExtensions(addonInfo), "|");
-        if (std::find(exts.begin(), exts.end(), "." + strExtension) != exts.end())
+        if (std::find(exts.begin(), exts.end(), strExtension) != exts.end())
         {
           CAudioDecoder* result = new CAudioDecoder(addonInfo);
           if (!result->CreateDecoder() || !result->ContainsFiles(url))
@@ -75,7 +75,7 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
       if (vfsAddon->HasFileDirectories())
       {
         auto exts = StringUtils::Split(vfsAddon->GetExtensions(), "|");
-        if (std::find(exts.begin(), exts.end(), "." + strExtension) != exts.end())
+        if (std::find(exts.begin(), exts.end(), strExtension) != exts.end())
         {
           CVFSEntryIFileDirectoryWrapper* wrap = new CVFSEntryIFileDirectoryWrapper(vfsAddon);
           if (wrap->ContainsFiles(url))
@@ -86,13 +86,21 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
               *pItem = *wrap->m_items[0];
             }
             else
-            { // compressed or more than one file -> create a dir
+            {
+              // compressed or more than one file -> create a dir
               pItem->SetPath(wrap->m_items.GetPath());
-              return wrap;
             }
+
+            // Check for folder, if yes return also wrap.
+            // Needed to fix for e.g. RAR files with only one file inside
+            pItem->m_bIsFolder = URIUtils::HasSlashAtEnd(pItem->GetPath());
+            if (pItem->m_bIsFolder)
+              return wrap;
           }
           else
+          {
             pItem->m_bIsFolder = true;
+          }
 
           delete wrap;
           return nullptr;
