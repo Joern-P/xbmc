@@ -762,7 +762,6 @@ bool CApplication::Initialize()
 
   // Init DPMS, before creating the corresponding setting control.
   m_dpms.reset(new DPMSSupport());
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_CECACTIVATESOURCE);
   bool uiInitializationFinished = false;
   if (CServiceBroker::GetGUI()->GetWindowManager().Initialized())
   {
@@ -879,6 +878,8 @@ bool CApplication::Initialize()
   // reset our screensaver (starts timers etc.)
   
   ResetScreenSaver();
+  WakeUpScreenSaverAndDPMS();
+  OnAction(CAction(ACTION_MOUSE_MOVE, 0, static_cast<float>(newEvent.focus.x), static_cast<float>(newEvent.focus.y), 0, 0));
 
   // if the user interfaces has been fully initialized let everyone know
   if (uiInitializationFinished)
