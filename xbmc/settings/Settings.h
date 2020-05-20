@@ -339,6 +339,7 @@ public:
   static const std::string SETTING_NETWORK_HTTPPROXYPASSWORD;
   static const std::string SETTING_NETWORK_BANDWIDTH;
   static const std::string SETTING_POWERMANAGEMENT_DISPLAYSOFF;
+  static const std::string SETTING_POWERMANAGEMENT_CECSTANDBY;
   static const std::string SETTING_POWERMANAGEMENT_SHUTDOWNTIME;
   static const std::string SETTING_POWERMANAGEMENT_SHUTDOWNSTATE;
   static const std::string SETTING_POWERMANAGEMENT_WAKEONACCESS;

@@ -424,6 +424,7 @@ protected:
 
   std::unique_ptr<DPMSSupport> m_dpms;
   bool m_dpmsIsActive = false;
+  bool m_cecIsActive = false;
   bool m_dpmsIsManual = false;
 
   CFileItemPtr m_itemCurrentFile;

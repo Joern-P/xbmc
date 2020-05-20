@@ -574,6 +574,7 @@ void CPeripheralCecAdapter::SetMenuLanguage(const char *strLanguage)
 
 void CPeripheralCecAdapter::OnTvStandby(void)
 {
+  KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_TVISSTANDBY);
   int iActionOnTvStandby = GetSettingInt("standby_pc_on_tv_standby");
   switch (iActionOnTvStandby)
   {

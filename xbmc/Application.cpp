@@ -2277,6 +2277,10 @@ void CApplication::OnApplicationMessage(ThreadMessage* pMsg)
     }
 
     break;
+    
+  case TMSG_TVISSTANDBY:
+    m_cecIsActive = true;
+    break;
 
   default:
     CLog::Log(LOGERROR, "%s: Unhandled threadmessage sent, %u", __FUNCTION__, msg);
@@ -3360,6 +3364,7 @@ void CApplication::ResetScreenSaver()
 {
   // reset our timers
   m_shutdownTimer.StartZero();
+  m_cecIsActive = false;
 
   // screen saver timer is reset only if we're not already in screensaver or
   // DPMS mode
@@ -3552,6 +3557,11 @@ void CApplication::CheckScreenSaverAndDPMS()
   // Are we playing a video and it is not paused?
   if (m_appPlayer.IsPlayingVideo() && !m_appPlayer.IsPaused())
     haveIdleActivity = true;
+  
+  bool havePauseIdleActivity = false;  
+  // Are we playing a video and it is paused?
+  if (m_appPlayer.IsPlayingVideo() && m_appPlayer.IsPaused())
+    havePauseIdleActivity = true;
 
   // Are we playing some music in fullscreen vis?
   else if (m_appPlayer.IsPlayingAudio() &&
@@ -3603,8 +3613,17 @@ void CApplication::CheckScreenSaverAndDPMS()
   if (maybeDPMS
       && elapsed > CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_POWERMANAGEMENT_DISPLAYSOFF) * 60)
   {
-    ToggleDPMS(false);
-    WakeUpScreenSaver();
+    if (!m_cecIsActive && CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_POWERMANAGEMENT_CECSTANDBY))
+    {
+       CApplicationMessenger::GetInstance().PostMsg(TMSG_CECSTANDBY);
+       m_cecIsActive = true;
+    }
+    
+    if (!havePauseIdleActivity)
+    {
+       ToggleDPMS(false);
+       WakeUpScreenSaver();
+    }
   }
   else if (maybeScreensaver
            && elapsed > CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SCREENSAVER_TIME) * 60)
@@ -3618,6 +3637,12 @@ void CApplication::CheckScreenSaverAndDPMS()
 // the type of screensaver displayed
 void CApplication::ActivateScreenSaver(bool forceType /*= false */)
 {
+  //never start the Screensaver when DPMS is active
+  if (m_dpmsIsActive)
+  {
+    return;
+  }
+  
   const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
   if (m_appPlayer.IsPlayingAudio() && settings->GetBool(CSettings::SETTING_SCREENSAVER_USEMUSICVISINSTEAD) &&
       !settings->GetString(CSettings::SETTING_MUSICPLAYER_VISUALISATION).empty())
